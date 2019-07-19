@@ -4,6 +4,9 @@
 #include <assert.h>
 
 #define N_CHARS 256
+#define EMPTY_NODE_CHAR -1
+#define DIR_RIGHT 1
+#define DIR_LEFT 0
 
 struct CharFreq
     {
@@ -23,9 +26,12 @@ struct CharFreq
     };
 
 struct FRQ_CMP
-    { bool operator()(const CharFreq* l, const CharFreq* r) const { return l->freq < r->freq; } };
-
-int CompareCharFreq (const void * left, const void * right);
+    {
+    bool operator() (const CharFreq* l, const CharFreq* r) const 
+        {
+        return l->freq < r->freq; 
+        } 
+    };
 
 void printTree (CharFreq* parent, int depth = 0, bool mask [N_CHARS] = { });
 
@@ -54,25 +60,21 @@ int main ()
             table.push_back (freq_table + i);
             }
 
-
     std::cout << "Chars used: " << chars_used << std::endl;
 
-    
     // Builds the tree
     while (table.size () != 1)
         {
+        // Sorts the nodes by their frequencies
         table.sort (FRQ_CMP ());
 
-        for (auto i : table)
-            std::cout << i->ch << " (" << int (i->ch) << ") - " << i->freq << std::endl;
-
-        std::cout << std::endl;
-
+        // Saves the pointers to the rarest elements
         CharFreq* SonL = table.front ();
         table.pop_front ();
         CharFreq* SonR = table.front ();
         table.pop_front ();
 
+        // And creates new element that replaces them 
         CharFreq *parent = new CharFreq;
 
         SonL->ptr_to_root = parent;
@@ -81,11 +83,10 @@ int main ()
         parent->ptr_to_left = SonL;
         parent->ptr_to_right = SonR;
         
-        parent->ch = -1;
+        parent->ch = EMPTY_NODE_CHAR;
         parent->freq = SonL->freq + SonR->freq;
 
         table.push_front (parent);
-
         }
     
     CharFreq *root = table.back ();
@@ -98,16 +99,10 @@ int main ()
     system ("pause");
     }
 
-int CompareCharFreq (const void * left, const void * right)
+void printTree (CharFreq * parent, int depth, bool mask [N_CHARS])
     {
-    const CharFreq* obj_left = (CharFreq*) left;
-    const CharFreq* obj_right = (CharFreq*) right;
-
-    return (obj_left->freq > obj_right->freq) ? -1 : 1;
-    }
-
-void printTree (CharFreq * parent, int depth, bool mask [])
-    {
+    // mmm, console graphics
+    
     // Creates new copy of the mask
     bool new_mask [N_CHARS] = { };
     for (int i = 0; i < N_CHARS; i++)
@@ -118,12 +113,11 @@ void printTree (CharFreq * parent, int depth, bool mask [])
             new_mask [i] = 0;
         }
 
-
     // Gets the direction code (0 or 1)
-    bool dir_code = 0;
+    bool dir_code = DIR_LEFT;
     if (parent->ptr_to_root != nullptr &&
          parent->ptr_to_root->ptr_to_right == parent)
-        dir_code = 1;
+        dir_code = DIR_RIGHT;
 
     // Tabs according to the node depth
     //
@@ -132,11 +126,12 @@ void printTree (CharFreq * parent, int depth, bool mask [])
     // Bar is being displayed
     for (int i = 0; i < depth; i++)
         if (!new_mask [i] ||
-            (dir_code == 1 && i == depth - 1))
+            (dir_code == DIR_RIGHT && i == depth - 1))
             std::cout << "     |";
         else
             std::cout << "      ";
 
+    // Draws the joint (with direction code)
     std::cout << "__" << dir_code << "__";
 
     // Prints the leafs    
@@ -144,11 +139,16 @@ void printTree (CharFreq * parent, int depth, bool mask [])
         parent->ptr_to_right == nullptr)
         std::cout << '\"' << parent->ch << 
                      "\" (" << int (parent->ch) << ')' <<
-                     " --- " << depth << std::endl;
-    // or joints
-    else
-        std::cout << std::endl;
+                     " --- " << depth;
+    
+    std::cout << std::endl;
 
+    // here console graphics ends
+
+
+    
+    
+    
     // Just to be on the safe side
     assert (0 <= depth && depth < 256);
         
@@ -161,5 +161,4 @@ void printTree (CharFreq * parent, int depth, bool mask [])
     new_mask [depth] = true;
     if (parent->ptr_to_right != nullptr)
         printTree (parent->ptr_to_right, depth + 1, new_mask);
-
     }
