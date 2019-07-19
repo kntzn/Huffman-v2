@@ -17,7 +17,7 @@ int main ()
     unsigned long len = 16;
 
     // Sets up freq_table and sets chars
-    CharFreq freq_table [N_CHARS] = { };
+    CharFreq* freq_table = (CharFreq*) calloc (N_CHARS, sizeof (CharFreq));
     for (int i = 0; i < N_CHARS; i++)
         freq_table [i].ch = i;
 
@@ -34,16 +34,16 @@ int main ()
         chars_used++;
     std::cout << "Chars used: " << chars_used << std::endl;
 
-
-
-
-
+    // Removes unused chars from table
+    CharFreq* freq_table_sorted = (CharFreq*) calloc (chars_used, sizeof (CharFreq));
+    for (int i = 0; i < chars_used; i++)
+        freq_table_sorted [i] = freq_table [i];
+    free (freq_table);
 
     // Outputs the table
-    for (int i = 0; i < N_CHARS; i++)
+    for (int i = 0; i < chars_used; i++)
         { 
-        if (freq_table [i].freq)
-            std::cout << freq_table [i].ch << " (" << int ( freq_table [i].ch) << ") - " << freq_table [i].freq << std::endl;
+        std::cout << freq_table_sorted [i].ch << " (" << int (freq_table_sorted [i].ch) << ") - " << freq_table_sorted [i].freq << std::endl;
         }
 
     system ("pause");
