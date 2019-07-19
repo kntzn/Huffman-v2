@@ -25,7 +25,18 @@ int main ()
     for (int i = 0; i < len; i++)
         freq_table [string [i]].freq++;
 
-    std::qsort (freq_table, N_CHARS, sizeof (CharFreq), CompareCharFreq);
+    // Sorts the table
+    qsort (freq_table, N_CHARS, sizeof (CharFreq), CompareCharFreq);
+
+    // Counts used chars
+    int chars_used = 0;
+    while (freq_table [chars_used].freq)
+        chars_used++;
+    std::cout << "Chars used: " << chars_used << std::endl;
+
+
+
+
 
 
     // Outputs the table
