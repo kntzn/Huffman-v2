@@ -1,6 +1,7 @@
 ﻿#include <stdlib.h>
 #include <iostream>
 #include <list>
+#include <assert.h>
 
 #define N_CHARS 256
 
@@ -110,40 +111,55 @@ void printTree (CharFreq * parent, int depth, bool mask [])
     // Creates new copy of the mask
     bool new_mask [N_CHARS] = { };
     for (int i = 0; i < N_CHARS; i++)
+        {
         if (depth)
             new_mask [i] = mask [i];
         else 
             new_mask [i] = 0;
+        }
 
 
+    // Gets the direction code (0 or 1)
+    bool dir_code = 0;
+    if (parent->ptr_to_root != nullptr &&
+         parent->ptr_to_root->ptr_to_right == parent)
+        dir_code = 1;
+
+    // Tabs according to the node depth
+    //
+    // If mask is inactive
+    // Or if this node is the right hand of it's parent
+    // Bar is being displayed
     for (int i = 0; i < depth; i++)
         if (!new_mask [i] ||
-            (parent->ptr_to_root != nullptr &&
-             parent->ptr_to_root->ptr_to_right == parent &&
-             i == depth - 1))
-            std::cout << "    |";
+            (dir_code == 1 && i == depth - 1))
+            std::cout << "     |";
         else
-            std::cout << "     ";
+            std::cout << "      ";
 
-    // Prints the leafs
+    std::cout << "__" << dir_code << "__";
+
+    // Prints the leafs    
     if (parent->ptr_to_left == nullptr &&
         parent->ptr_to_right == nullptr)
-        std::cout << "____\"" << parent->ch << "\" (" << int (parent->ch) << ')' << " --- " << depth << std::endl;
+        std::cout << '\"' << parent->ch << 
+                     "\" (" << int (parent->ch) << ')' <<
+                     " --- " << depth << std::endl;
+    // or joints
     else
-        std::cout << "____" << std::endl;
+        std::cout << std::endl;
 
-    
+    // Just to be on the safe side
+    assert (0 <= depth && depth < 256);
         
-
-
-
+    // Left-hand node
     if (parent->ptr_to_left != nullptr)
+        { 
         printTree (parent->ptr_to_left, depth + 1, new_mask);
-
+        }
+    // Right-hand node
     new_mask [depth] = true;
     if (parent->ptr_to_right != nullptr)
         printTree (parent->ptr_to_right, depth + 1, new_mask);
 
-    
-    
     }
