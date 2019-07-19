@@ -26,7 +26,7 @@ struct FRQ_CMP
 
 int CompareCharFreq (const void * left, const void * right);
 
-void printTree (int depth, CharFreq* parent);
+void printTree (CharFreq* parent, int depth = 0, bool mask [N_CHARS] = { });
 
 int main ()
     { 
@@ -89,7 +89,7 @@ int main ()
     
     CharFreq *root = table.back ();
     
-    printTree (0, root);
+    printTree (root);
     
 
 
@@ -105,28 +105,45 @@ int CompareCharFreq (const void * left, const void * right)
     return (obj_left->freq > obj_right->freq) ? -1 : 1;
     }
 
-void printTree (int depth, CharFreq * parent)
+void printTree (CharFreq * parent, int depth, bool mask [])
     {
-    for (int i = 0; i < depth; i++)
-        std::cout << "    ";
-    
-    if (parent->ch != -1)
-        std::cout << "\"" << parent->ch << "\" (" << int (parent->ch) << ')';
-    else
-        std::cout << '\\';
+    // Creates new copy of the mask
+    bool new_mask [N_CHARS] = { };
+    for (int i = 0; i < N_CHARS; i++)
+        if (depth)
+            new_mask [i] = mask [i];
+        else 
+            new_mask [i] = 0;
 
+
+    for (int i = 0; i < depth; i++)
+        if (!new_mask [i] ||
+            (parent->ptr_to_root != nullptr &&
+             parent->ptr_to_root->ptr_to_right == parent &&
+             i == depth - 1))
+            std::cout << "    |";
+        else
+            std::cout << "     ";
+
+    // Prints the leafs
     if (parent->ptr_to_left == nullptr &&
         parent->ptr_to_right == nullptr)
-        std::cout << " --- " << depth + 1;
+        std::cout << "____\"" << parent->ch << "\" (" << int (parent->ch) << ')' << " --- " << depth << std::endl;
+    else
+        std::cout << "____" << std::endl;
 
-    std::cout << std::endl;
-    //"├───"
+    
+        
+
 
 
     if (parent->ptr_to_left != nullptr)
-        printTree (depth + 1, parent->ptr_to_left);
-    if (parent->ptr_to_right != nullptr)
-        printTree (depth + 1, parent->ptr_to_right);
+        printTree (parent->ptr_to_left, depth + 1, new_mask);
 
+    new_mask [depth] = true;
+    if (parent->ptr_to_right != nullptr)
+        printTree (parent->ptr_to_right, depth + 1, new_mask);
+
+    
     
     }
