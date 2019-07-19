@@ -1,5 +1,6 @@
 #include <stdlib.h>
 #include <iostream>
+#include <list>
 
 #define N_CHARS 256
 
@@ -7,9 +8,25 @@ struct CharFreq
     {
     unsigned long freq;
     char ch;
+    CharFreq* ptr_to_root;
+    CharFreq* ptr_to_left;
+    CharFreq* ptr_to_right;
+
+    CharFreq ():
+        freq (0),
+        ch (-1),
+        ptr_to_left (nullptr),
+        ptr_to_right (nullptr),
+        ptr_to_root (nullptr)
+        { /*BVVUUUUUUUS'*/ }
     };
 
+struct FRQ_CMP
+    { bool operator()(const CharFreq* l, const CharFreq* r) const { return l->freq > r->freq; } };
+
 int CompareCharFreq (const void * left, const void * right);
+
+void printTree (int depth, CharFreq* parent);
 
 int main ()
     { 
@@ -35,16 +52,47 @@ int main ()
     std::cout << "Chars used: " << chars_used << std::endl;
 
     // Removes unused chars from table
-    CharFreq* freq_table_sorted = (CharFreq*) calloc (chars_used, sizeof (CharFreq));
+    std::list <CharFreq*> table;
     for (int i = 0; i < chars_used; i++)
-        freq_table_sorted [i] = freq_table [i];
-    free (freq_table);
+        table.push_back (freq_table + i);
+    
 
-    // Outputs the table
-    for (int i = 0; i < chars_used; i++)
-        { 
-        std::cout << freq_table_sorted [i].ch << " (" << int (freq_table_sorted [i].ch) << ") - " << freq_table_sorted [i].freq << std::endl;
+    // Builds the tree
+    while (table.size () != 1)
+        {
+        table.sort (FRQ_CMP ());
+
+        for (auto i : table)
+            std::cout << i->ch << " (" << int (i->ch) << ") - " << i->freq << std::endl;
+
+        std::cout << std::endl;
+
+        CharFreq* SonL = table.front ();
+        table.pop_front ();
+        CharFreq* SonR = table.front ();
+        table.pop_front ();
+
+        CharFreq *parent = new CharFreq;
+
+        SonL->ptr_to_root = parent;
+        SonR->ptr_to_root = parent;
+
+        parent->ptr_to_left = SonL;
+        parent->ptr_to_right = SonR;
+        
+        parent->ch = 0;
+        parent->freq = SonL->freq + SonR->freq;
+
+        table.push_front (parent);
+
         }
+    
+    CharFreq *root = table.back ();
+    
+    printTree (0, root);
+    
+
+
 
     system ("pause");
     }
@@ -55,4 +103,18 @@ int CompareCharFreq (const void * left, const void * right)
     const CharFreq* obj_right = (CharFreq*) right;
 
     return (obj_left->freq > obj_right->freq) ? -1 : 1;
+    }
+
+void printTree (int depth, CharFreq * parent)
+    {
+    
+    if (parent->ptr_to_left != nullptr)
+        printTree (depth + 1, parent->ptr_to_left);
+    if (parent->ptr_to_right != nullptr)
+        printTree (depth + 1, parent->ptr_to_right);
+
+    for (int i = 0; i < depth; i++)
+        std::cout << "    ";
+
+    std::cout << parent->ch << std::endl;
     }
