@@ -1,4 +1,4 @@
-#include <stdlib.h>
+﻿#include <stdlib.h>
 #include <iostream>
 #include <list>
 
@@ -22,7 +22,7 @@ struct CharFreq
     };
 
 struct FRQ_CMP
-    { bool operator()(const CharFreq* l, const CharFreq* r) const { return l->freq > r->freq; } };
+    { bool operator()(const CharFreq* l, const CharFreq* r) const { return l->freq < r->freq; } };
 
 int CompareCharFreq (const void * left, const void * right);
 
@@ -34,7 +34,7 @@ int main ()
     unsigned long len = 16;
 
     // Sets up freq_table and sets chars
-    CharFreq* freq_table = (CharFreq*) calloc (N_CHARS, sizeof (CharFreq));
+    CharFreq freq_table [N_CHARS];
     for (int i = 0; i < N_CHARS; i++)
         freq_table [i].ch = i;
 
@@ -42,21 +42,21 @@ int main ()
     for (int i = 0; i < len; i++)
         freq_table [string [i]].freq++;
 
-    // Sorts the table
-    qsort (freq_table, N_CHARS, sizeof (CharFreq), CompareCharFreq);
-
     // Counts used chars
+    // And saves them to table
+    std::list <CharFreq*> table;
     int chars_used = 0;
-    while (freq_table [chars_used].freq)
-        chars_used++;
+    for (int i = 0; i < N_CHARS; i++)
+        if (freq_table [i].freq)
+            {
+            chars_used++;
+            table.push_back (freq_table + i);
+            }
+
+
     std::cout << "Chars used: " << chars_used << std::endl;
 
-    // Removes unused chars from table
-    std::list <CharFreq*> table;
-    for (int i = 0; i < chars_used; i++)
-        table.push_back (freq_table + i);
     
-
     // Builds the tree
     while (table.size () != 1)
         {
@@ -80,7 +80,7 @@ int main ()
         parent->ptr_to_left = SonL;
         parent->ptr_to_right = SonR;
         
-        parent->ch = 0;
+        parent->ch = -1;
         parent->freq = SonL->freq + SonR->freq;
 
         table.push_front (parent);
@@ -107,14 +107,26 @@ int CompareCharFreq (const void * left, const void * right)
 
 void printTree (int depth, CharFreq * parent)
     {
+    for (int i = 0; i < depth; i++)
+        std::cout << "    ";
     
+    if (parent->ch != -1)
+        std::cout << "\"" << parent->ch << "\" (" << int (parent->ch) << ')';
+    else
+        std::cout << '\\';
+
+    if (parent->ptr_to_left == nullptr &&
+        parent->ptr_to_right == nullptr)
+        std::cout << " --- " << depth + 1;
+
+    std::cout << std::endl;
+    //"├───"
+
+
     if (parent->ptr_to_left != nullptr)
         printTree (depth + 1, parent->ptr_to_left);
     if (parent->ptr_to_right != nullptr)
         printTree (depth + 1, parent->ptr_to_right);
 
-    for (int i = 0; i < depth; i++)
-        std::cout << "    ";
-
-    std::cout << parent->ch << std::endl;
+    
     }
