@@ -9,6 +9,8 @@ struct CharFreq
     char ch;
     };
 
+int CompareCharFreq (const void * left, const void * right);
+
 int main ()
     { 
     char string [] = "beep boop beer!";
@@ -23,12 +25,23 @@ int main ()
     for (int i = 0; i < len; i++)
         freq_table [string [i]].freq++;
 
+    std::qsort (freq_table, N_CHARS, sizeof (CharFreq), CompareCharFreq);
 
+
+    // Outputs the table
     for (int i = 0; i < N_CHARS; i++)
         { 
         if (freq_table [i].freq)
-            std::cout << char (i) << " (" << i << ") - " << freq_table [i].freq << std::endl;
+            std::cout << freq_table [i].ch << " (" << int ( freq_table [i].ch) << ") - " << freq_table [i].freq << std::endl;
         }
 
     system ("pause");
+    }
+
+int CompareCharFreq (const void * left, const void * right)
+    {
+    const CharFreq* obj_left = (CharFreq*) left;
+    const CharFreq* obj_right = (CharFreq*) right;
+
+    return (obj_left->freq > obj_right->freq) ? -1 : 1;
     }
