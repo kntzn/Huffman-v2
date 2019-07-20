@@ -34,10 +34,11 @@ struct FRQ_CMP
     };
 
 void printTree (CharFreq* parent, int depth = 0, bool mask [N_CHARS] = { });
+void freeTree (CharFreq * root);
 
 int main ()
     { 
-    char string [] = "beep boop beer!";
+    char string [] = "beep boop beer!"; 
     unsigned long len = 16;
 
     // Sets up freq_table and sets chars
@@ -75,7 +76,7 @@ int main ()
         table.pop_front ();
 
         // And creates new element that replaces them 
-        CharFreq *parent = new CharFreq;
+        CharFreq *parent =  (CharFreq*) calloc (1, sizeof (CharFreq));
 
         SonL->ptr_to_root = parent;
         SonR->ptr_to_root = parent;
@@ -92,12 +93,20 @@ int main ()
     CharFreq *root = table.back ();
     
     printTree (root);
+
     
+    freeTree (root);
+    
+    // TODO: Memory cleaner for tree
+    // TODO: Codes saver (Array or smth)
+    // TODO: string conversion
 
-
+    // TODO: File Load/Save
 
     system ("pause");
     }
+
+
 
 void printTree (CharFreq * parent, int depth, bool mask [N_CHARS])
     {
@@ -161,4 +170,18 @@ void printTree (CharFreq * parent, int depth, bool mask [N_CHARS])
     new_mask [depth] = true;
     if (parent->ptr_to_right != nullptr)
         printTree (parent->ptr_to_right, depth + 1, new_mask);
+    }
+
+void freeTree (CharFreq * root)
+    {
+    
+    if (root->ptr_to_left != nullptr)
+        freeTree (root->ptr_to_left);
+    if (root->ptr_to_right != nullptr)
+        freeTree (root->ptr_to_right);
+    
+    // Do not free the char nodes (leafs)
+    if (root->ptr_to_left != nullptr ||
+        root->ptr_to_right != nullptr)
+        free (root);
     }
