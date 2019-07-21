@@ -3,6 +3,7 @@
 #include <list>
 #include <vector>
 #include <assert.h>
+#include "FileIO.h"
 
 #define N_CHARS 256
 #define MAX_DEPTH N_CHARS
@@ -37,7 +38,6 @@ struct FRQ_CMP
     };
 
 void printTable (CharTreeNode freq_table [N_CHARS]);
-
 void printTree (CharTreeNode* parent, int depth = 0, bool mask [MAX_DEPTH] = { });
 
 void freeTree (CharTreeNode * root);
@@ -45,9 +45,11 @@ void saveCodes (CharTreeNode * root, std::vector <bool> &root_code);
 
 
 int main ()
-    { 
-    char string [] = "beep boop beer!"; 
-    unsigned long len = 16;
+    {
+    char* string = nullptr;
+    long len = 0;
+    FileIO file;
+    file.fastLoad ("input.txt", string, len);
 
     // Sets up freq_table and sets chars
     CharTreeNode* freq_table = (CharTreeNode*) calloc (N_CHARS, sizeof (CharTreeNode));
@@ -107,9 +109,11 @@ int main ()
     saveCodes (root, std::vector <bool> (0));
     printTable (freq_table);
 
+    
+
     // TODO: string conversion
 
-    // TODO: File Load/Save
+    // TODO: File Load / Save
 
     // Frees the memory
     freeTree (root);
@@ -129,17 +133,14 @@ void printTable (CharTreeNode freq_table [N_CHARS])
                 int (freq_table [i].ch) << ")\t freq: " <<
                 freq_table [i].freq << "\t code: ";
 
+
             std::vector <bool> this_node_code = freq_table [i].code;
-
-
-
             for (int j = 0; j < this_node_code.size (); j++)
                 std::cout << this_node_code [j];
 
             std::cout << std::endl;
             }
     }
-
 void printTree (CharTreeNode * parent, int depth, bool mask [MAX_DEPTH])
     {
     // mmm, console graphics
@@ -215,7 +216,6 @@ void freeTree (CharTreeNode * root)
         root->ptr_to_right != nullptr)
         free (root);
     }
-
 void saveCodes (CharTreeNode * root, std::vector <bool> &root_code)
     {
     if (root->ptr_to_left != NULL)
