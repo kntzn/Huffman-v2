@@ -36,6 +36,8 @@ struct FRQ_CMP
         } 
     };
 
+void printTable (CharTreeNode freq_table [N_CHARS]);
+
 void printTree (CharTreeNode* parent, int depth = 0, bool mask [MAX_DEPTH] = { });
 
 void freeTree (CharTreeNode * root);
@@ -100,12 +102,11 @@ int main ()
         table.push_front (parent);
         }
     CharTreeNode *root = table.back ();
-    
     printTree (root);
 
     saveCodes (root, std::vector <bool> (0));
+    printTable (freq_table);
 
-    // TODO: Codes saver (Array or smth)
     // TODO: string conversion
 
     // TODO: File Load/Save
@@ -117,7 +118,27 @@ int main ()
     system ("pause");
     }
 
+void printTable (CharTreeNode freq_table [N_CHARS])
+    { 
+    std::cout << std::endl << std::endl;
 
+    for (int i = 0; i < N_CHARS; i++)
+        if (freq_table [i].freq)
+            {
+            std::cout << "'" << freq_table [i].ch << "'\t (" <<
+                int (freq_table [i].ch) << ")\t freq: " <<
+                freq_table [i].freq << "\t code: ";
+
+            std::vector <bool> this_node_code = freq_table [i].code;
+
+
+
+            for (int j = 0; j < this_node_code.size (); j++)
+                std::cout << this_node_code [j];
+
+            std::cout << std::endl;
+            }
+    }
 
 void printTree (CharTreeNode * parent, int depth, bool mask [MAX_DEPTH])
     {
