@@ -1,22 +1,25 @@
 ﻿#include <stdlib.h>
 #include <iostream>
 #include <list>
+#include <vector>
 #include <assert.h>
 
 #define N_CHARS 256
+#define MAX_DEPTH N_CHARS
 #define EMPTY_NODE_CHAR -1
 #define DIR_RIGHT 1
 #define DIR_LEFT 0
 
-struct CharFreq
+struct CharTreeNode
     {
     unsigned long freq;
     char ch;
-    CharFreq* ptr_to_root;
-    CharFreq* ptr_to_left;
-    CharFreq* ptr_to_right;
+    CharTreeNode* ptr_to_root;
+    CharTreeNode* ptr_to_left;
+    CharTreeNode* ptr_to_right;
+    std::vector <bool> code;
 
-    CharFreq ():
+    CharTreeNode ():
         freq (0),
         ch (-1),
         ptr_to_left (nullptr),
@@ -27,14 +30,17 @@ struct CharFreq
 
 struct FRQ_CMP
     {
-    bool operator() (const CharFreq* l, const CharFreq* r) const 
+    bool operator() (const CharTreeNode* l, const CharTreeNode* r) const 
         {
         return l->freq < r->freq; 
         } 
     };
 
-void printTree (CharFreq* parent, int depth = 0, bool mask [N_CHARS] = { });
-void freeTree (CharFreq * root);
+void printTree (CharTreeNode* parent, int depth = 0, bool mask [MAX_DEPTH] = { });
+
+void freeTree (CharTreeNode * root);
+void saveCodes (CharTreeNode * root, std::vector <bool> &root_code);
+
 
 int main ()
     { 
@@ -42,17 +48,19 @@ int main ()
     unsigned long len = 16;
 
     // Sets up freq_table and sets chars
-    CharFreq freq_table [N_CHARS];
+    CharTreeNode* freq_table = (CharTreeNode*) calloc (N_CHARS, sizeof (CharTreeNode));
+    if (!freq_table) 
+        exit (1);
     for (int i = 0; i < N_CHARS; i++)
         freq_table [i].ch = i;
 
-    // Counts frequency
+    // Counts frequency and fills the table
     for (int i = 0; i < len; i++)
         freq_table [string [i]].freq++;
 
     // Counts used chars
     // And saves them to table
-    std::list <CharFreq*> table;
+    std::list <CharTreeNode*> table;
     int chars_used = 0;
     for (int i = 0; i < N_CHARS; i++)
         if (freq_table [i].freq)
@@ -61,7 +69,7 @@ int main ()
             table.push_back (freq_table + i);
             }
 
-    std::cout << "Chars used: " << chars_used << std::endl;
+    std::cout << "Chars used: " << chars_used << "/" << N_CHARS << std::endl;
 
     // Builds the tree
     while (table.size () != 1)
@@ -70,13 +78,15 @@ int main ()
         table.sort (FRQ_CMP ());
 
         // Saves the pointers to the rarest elements
-        CharFreq* SonL = table.front ();
+        CharTreeNode* SonL = table.front ();
         table.pop_front ();
-        CharFreq* SonR = table.front ();
+        CharTreeNode* SonR = table.front ();
         table.pop_front ();
 
         // And creates new element that replaces them 
-        CharFreq *parent =  (CharFreq*) calloc (1, sizeof (CharFreq));
+        CharTreeNode *parent =  (CharTreeNode*) calloc (1, sizeof (CharTreeNode));
+        if (!parent)
+            exit (1);
 
         SonL->ptr_to_root = parent;
         SonR->ptr_to_root = parent;
@@ -89,32 +99,33 @@ int main ()
 
         table.push_front (parent);
         }
-    
-    CharFreq *root = table.back ();
+    CharTreeNode *root = table.back ();
     
     printTree (root);
 
-    
-    freeTree (root);
-    
-    // TODO: Memory cleaner for tree
+    saveCodes (root, std::vector <bool> (0));
+
     // TODO: Codes saver (Array or smth)
     // TODO: string conversion
 
     // TODO: File Load/Save
 
+    // Frees the memory
+    freeTree (root);
+    free (freq_table);
+    
     system ("pause");
     }
 
 
 
-void printTree (CharFreq * parent, int depth, bool mask [N_CHARS])
+void printTree (CharTreeNode * parent, int depth, bool mask [MAX_DEPTH])
     {
     // mmm, console graphics
     
     // Creates new copy of the mask
-    bool new_mask [N_CHARS] = { };
-    for (int i = 0; i < N_CHARS; i++)
+    bool new_mask [MAX_DEPTH] = { };
+    for (int i = 0; i < MAX_DEPTH; i++)
         {
         if (depth)
             new_mask [i] = mask [i];
@@ -163,18 +174,16 @@ void printTree (CharFreq * parent, int depth, bool mask [N_CHARS])
         
     // Left-hand node
     if (parent->ptr_to_left != nullptr)
-        { 
         printTree (parent->ptr_to_left, depth + 1, new_mask);
-        }
+    
     // Right-hand node
     new_mask [depth] = true;
     if (parent->ptr_to_right != nullptr)
         printTree (parent->ptr_to_right, depth + 1, new_mask);
     }
 
-void freeTree (CharFreq * root)
+void freeTree (CharTreeNode * root)
     {
-    
     if (root->ptr_to_left != nullptr)
         freeTree (root->ptr_to_left);
     if (root->ptr_to_right != nullptr)
@@ -184,4 +193,26 @@ void freeTree (CharFreq * root)
     if (root->ptr_to_left != nullptr ||
         root->ptr_to_right != nullptr)
         free (root);
+    }
+
+void saveCodes (CharTreeNode * root, std::vector <bool> &root_code)
+    {
+    if (root->ptr_to_left != NULL)
+        {
+        root_code.push_back (DIR_LEFT);
+        saveCodes (root->ptr_to_left, root_code);
+        }
+    if (root->ptr_to_right != NULL)
+        {
+        root_code.push_back (DIR_RIGHT);
+        saveCodes (root->ptr_to_right, root_code);
+        }
+
+    if (root->ptr_to_left == NULL && root->ptr_to_right == NULL)
+        {
+        root->code = root_code;
+        }
+
+    if (root_code.size ())
+        root_code.pop_back ();
     }
