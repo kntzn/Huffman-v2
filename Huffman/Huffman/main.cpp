@@ -39,13 +39,18 @@ struct FRQ_CMP
 
 void printTable (CharTreeNode freq_table [N_CHARS]);
 void printTree (CharTreeNode* parent, int depth = 0, bool mask [MAX_DEPTH] = { });
+void printStringCodeVector (std::vector <bool> string_code);
+void printOutputStringInt (std::string output_string);
 
-void freeTree (CharTreeNode * root);
+CharTreeNode* buildTree (CharTreeNode freq_table [N_CHARS]);
 void saveCodes (CharTreeNode * root, std::vector <bool> &root_code);
-
+std::vector <bool> generateOutputBitConsequence (char* string, long len, CharTreeNode freq_table [N_CHARS]);
+std::string convertBitConsequenceToString (std::vector <bool> string_code);
+void freeTree (CharTreeNode * root);
 
 int main ()
     {
+    // String and fileIO setup
     char* string = nullptr;
     long len = 0;
     FileIO file;
@@ -54,107 +59,37 @@ int main ()
 
     // Sets up freq_table and sets chars
     CharTreeNode* freq_table = (CharTreeNode*) calloc (N_CHARS, sizeof (CharTreeNode));
-    if (!freq_table) 
-        exit (1);
+    assert (freq_table);
+    
+    // Fills the table
     for (int i = 0; i < N_CHARS; i++)
         freq_table [i].ch = i;
-
-    // Counts frequency and fills the table
     for (int i = 0; i < len; i++)
         freq_table [string [i]].freq++;
 
-    // Counts used chars
-    // And saves them to table
-    std::list <CharTreeNode*> table;
-    int chars_used = 0;
-    for (int i = 0; i < N_CHARS; i++)
-        if (freq_table [i].freq)
-            {
-            chars_used++;
-            table.push_back (freq_table + i);
-            }
-
-    std::cout << "Chars used: " << chars_used << "/" << N_CHARS << std::endl;
-
     // Builds the tree
-    while (table.size () != 1)
-        {
-        // Sorts the nodes by their frequencies
-        table.sort (FRQ_CMP ());
-
-        // Saves the pointers to the rarest elements
-        CharTreeNode* SonL = table.front ();
-        table.pop_front ();
-        CharTreeNode* SonR = table.front ();
-        table.pop_front ();
-
-        // And creates new element that replaces them 
-        CharTreeNode *parent =  (CharTreeNode*) calloc (1, sizeof (CharTreeNode));
-        if (!parent)
-            exit (1);
-
-        SonL->ptr_to_root = parent;
-        SonR->ptr_to_root = parent;
-
-        parent->ptr_to_left = SonL;
-        parent->ptr_to_right = SonR;
-        
-        parent->ch = EMPTY_NODE_CHAR;
-        parent->freq = SonL->freq + SonR->freq;
-
-        table.push_front (parent);
-        }
-    CharTreeNode *root = table.back ();
+    CharTreeNode* root = buildTree (freq_table);
     printTree (root);
 
     saveCodes (root, std::vector <bool> (0));
     printTable (freq_table);
 
     // Converts input string to string_code bits vector
-    std::vector <bool> string_code;
-    for (int i = 0; i < len; i++)
-        { 
-        char curr_char = string [i];
-        std::vector <bool> curr_char_code = freq_table [curr_char].code;
-        
-        // Joins this char code to the string code vector
-        for (int j = 0; j < curr_char_code.size (); j++)
-            string_code.push_back (curr_char_code [j]);
-        }
+    std::vector <bool> string_code = 
+        generateOutputBitConsequence (string, len, freq_table);
     
-    for (int i = 0; i < string_code.size (); i++)
-        std::cout << string_code [i] << " ";
-    std::cout << std::endl;
+    // Outputs the bits array
+    printStringCodeVector (string_code);
     
     // Converts bits array to string
-    std::string output_string;
-    char last_char = 0;
-    for (int i = 0; i < string_code.size (); i++)
-        { 
-        last_char |= int (string_code [i]);
-        if (i%8 != 7)
-            last_char <<= 1;
-        else
-            { 
-            output_string += last_char;
-            last_char = 0;
-            }
-        }
-    // Last char handler
-    if ((string_code.size ()) % 8 != 7)
-        { 
-        int shift = 7 - ((string_code.size ()) % 8);
-        last_char <<= shift;
+    std::string output_string = 
+        convertBitConsequenceToString (string_code);
+   
+    // Outputs output_string 
+    printOutputStringInt (output_string);
 
-        output_string += last_char;
-        }
-
-
-    for (int i = 0; i < output_string.size (); i++)
-        std::cout << int (output_string [i]) << " ";
-    std::cout << std::endl;
-
-    // TODO: File Load / Save
+    // Saves output_string
+    file.fastSave ("output.txt", output_string.c_str (), output_string.size ());
 
     // Frees the memory
     freeTree (root);
@@ -244,14 +179,66 @@ void printTree (CharTreeNode * parent, int depth, bool mask [MAX_DEPTH])
     if (parent->ptr_to_right != nullptr)
         printTree (parent->ptr_to_right, depth + 1, new_mask);
     }
+void printStringCodeVector (std::vector<bool> string_code)
+    {
+    for (int i = 0; i < string_code.size (); i++)
+        std::cout << int (string_code [i]) << " ";
+    std::cout << std::endl;
+    }
+void printOutputStringInt (std::string output_string)
+    {
+    for (int i = 0; i < output_string.size (); i++)
+        std::cout << int (output_string [i]) << " ";
+    std::cout << std::endl;
+    }
 
+
+CharTreeNode * buildTree (CharTreeNode freq_table [N_CHARS])
+    {
+    // Saves used chars in table
+    std::list <CharTreeNode*> table;
+    for (int i = 0; i < N_CHARS; i++)
+        if (freq_table [i].freq)
+            table.push_back (freq_table + i);
+
+    // Builds the tree
+    while (table.size () != 1)
+        {
+        // Sorts the nodes by their frequencies
+        table.sort (FRQ_CMP ());
+
+        // Saves the pointers to the rarest elements
+        CharTreeNode* SonL = table.front ();
+        table.pop_front ();
+        CharTreeNode* SonR = table.front ();
+        table.pop_front ();
+
+        // And creates new element that replaces them 
+        CharTreeNode *parent = (CharTreeNode*) calloc (1, sizeof (CharTreeNode));
+        if (!parent)
+            exit (1);
+
+        SonL->ptr_to_root = parent;
+        SonR->ptr_to_root = parent;
+
+        parent->ptr_to_left = SonL;
+        parent->ptr_to_right = SonR;
+
+        parent->ch = EMPTY_NODE_CHAR;
+        parent->freq = SonL->freq + SonR->freq;
+
+        table.push_front (parent);
+        }
+
+    return table.back ();
+    }
 void freeTree (CharTreeNode * root)
     {
     if (root->ptr_to_left != nullptr)
         freeTree (root->ptr_to_left);
     if (root->ptr_to_right != nullptr)
         freeTree (root->ptr_to_right);
-    
+
     // Do not free the char nodes (leafs)
     if (root->ptr_to_left != nullptr ||
         root->ptr_to_right != nullptr)
@@ -278,3 +265,49 @@ void saveCodes (CharTreeNode * root, std::vector <bool> &root_code)
     if (root_code.size ())
         root_code.pop_back ();
     }
+
+std::vector <bool> generateOutputBitConsequence (char* string, long len, CharTreeNode freq_table [N_CHARS])
+    {
+    std::vector <bool> string_code;
+
+    for (int i = 0; i < len; i++)
+        { 
+        char curr_char = string [i];
+        std::vector <bool> curr_char_code = freq_table [curr_char].code;
+        
+        // Joins this char code to the string code vector
+        for (int j = 0; j < curr_char_code.size (); j++)
+            string_code.push_back (curr_char_code [j]);
+        }
+
+    return string_code;
+    }
+
+std::string convertBitConsequenceToString (std::vector <bool> string_code)
+    {
+    std::string output_string;
+
+    char last_char = 0;
+    for (int i = 0; i < string_code.size (); i++)
+        {
+        last_char |= int (string_code [i]);
+        if (i % 8 != 7)
+            last_char <<= 1;
+        else
+            {
+            output_string += last_char;
+            last_char = 0;
+            }
+        }
+    // Last char handler
+    if ((string_code.size ()) % 8 != 7)
+        {
+        int shift = 7 - ((string_code.size ()) % 8);
+        last_char <<= shift;
+
+        output_string += last_char;
+        }
+
+    return output_string;
+    }
+
