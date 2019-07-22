@@ -3,6 +3,7 @@
 #include <list>
 #include <vector>
 #include <assert.h>
+#include <ctime>
 #include "FileIO.h"
 
 #define N_CHARS 256
@@ -50,6 +51,9 @@ void freeTree (CharTreeNode * root);
 
 int main ()
     {
+    clock_t start = clock ();
+    clock_t prg_strt = clock ();
+
     // String and fileIO setup
     char* string = nullptr;
     long len = 0;
@@ -67,26 +71,41 @@ int main ()
     for (int i = 0; i < len; i++)
         freq_table [string [i]].freq++;
 
+    std::cout << clock () - start << " ms" << std::endl;
+    start = clock ();
+
     // Builds the tree
     CharTreeNode* root = buildTree (freq_table);
-    printTree (root);
+    //printTree (root);
+
+    std::cout << clock () - start << " ms" << std::endl;
+    start = clock ();
 
     saveCodes (root, std::vector <bool> (0));
-    printTable (freq_table);
+    //printTable (freq_table);
+
+    std::cout << clock () - start << " ms" << std::endl;
+    start = clock ();
 
     // Converts input string to string_code bits vector
     std::vector <bool> string_code = 
         generateOutputBitConsequence (string, len, freq_table);
     
+    std::cout << clock () - start << " ms" << std::endl;
+    start = clock ();
+
     // Outputs the bits array
-    printStringCodeVector (string_code);
+    //printStringCodeVector (string_code);
     
     // Converts bits array to string
     std::string output_string = 
         convertBitConsequenceToString (string_code);
    
+    std::cout << clock () - start << " ms" << std::endl;
+    start = clock ();
+
     // Outputs output_string 
-    printOutputStringInt (output_string);
+    //printOutputStringInt (output_string);
 
     // Saves output_string
     file.fastSave ("output.txt", output_string.c_str (), output_string.size ());
@@ -95,6 +114,11 @@ int main ()
     freeTree (root);
     free (freq_table);
     
+    std::cout << clock () - start << " ms" << std::endl;
+    std::cout << std::endl << clock () - prg_strt << " ms" << std::endl;
+    
+    start = clock ();
+
     system ("pause");
     }
 
@@ -232,18 +256,7 @@ CharTreeNode * buildTree (CharTreeNode freq_table [N_CHARS])
 
     return table.back ();
     }
-void freeTree (CharTreeNode * root)
-    {
-    if (root->ptr_to_left != nullptr)
-        freeTree (root->ptr_to_left);
-    if (root->ptr_to_right != nullptr)
-        freeTree (root->ptr_to_right);
 
-    // Do not free the char nodes (leafs)
-    if (root->ptr_to_left != nullptr ||
-        root->ptr_to_right != nullptr)
-        free (root);
-    }
 void saveCodes (CharTreeNode * root, std::vector <bool> &root_code)
     {
     if (root->ptr_to_left != NULL)
@@ -311,3 +324,15 @@ std::string convertBitConsequenceToString (std::vector <bool> string_code)
     return output_string;
     }
 
+void freeTree (CharTreeNode * root)
+    {
+    if (root->ptr_to_left != nullptr)
+        freeTree (root->ptr_to_left);
+    if (root->ptr_to_right != nullptr)
+        freeTree (root->ptr_to_right);
+
+    // Do not free the char nodes (leafs)
+    if (root->ptr_to_left != nullptr ||
+        root->ptr_to_right != nullptr)
+        free (root);
+    }
