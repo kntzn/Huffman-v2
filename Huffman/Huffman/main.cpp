@@ -5,6 +5,7 @@
 #include <assert.h>
 #include <ctime>
 #include "FileIO.h"
+#include <bitset>
 
 #define N_CHARS 256
 #define MAX_DEPTH N_CHARS
@@ -45,8 +46,6 @@ void printOutputStringInt (std::string output_string);
 
 CharTreeNode* buildTree (CharTreeNode freq_table [N_CHARS]);
 void saveCodes (CharTreeNode * root, std::vector <bool> &root_code);
-std::vector <bool> generateOutputBitConsequence (char* string, long len, CharTreeNode freq_table [N_CHARS]);
-std::string convertBitConsequenceToString (std::vector <bool> string_code);
 void freeTree (CharTreeNode * root);
 
 int main ()
@@ -64,7 +63,7 @@ int main ()
     // Sets up freq_table and sets chars
     CharTreeNode* freq_table = (CharTreeNode*) calloc (N_CHARS, sizeof (CharTreeNode));
     assert (freq_table);
-    
+
     // Fills the table
     for (int i = 0; i < N_CHARS; i++)
         freq_table [i].ch = i;
@@ -82,30 +81,30 @@ int main ()
     start = clock ();
 
     saveCodes (root, std::vector <bool> (0));
-    //printTable (freq_table);
+    printTable (freq_table);
 
     std::cout << clock () - start << " ms" << std::endl;
     start = clock ();
 
-    // Converts input string to string_code bits vector
-    std::vector <bool> string_code = 
-        generateOutputBitConsequence (string, len, freq_table);
-    
-    std::cout << clock () - start << " ms" << std::endl;
-    start = clock ();
-
-    // Outputs the bits array
-    //printStringCodeVector (string_code);
-    
     // Converts bits array to string
-    std::string output_string = 
-        convertBitConsequenceToString (string_code);
-   
+    std::string output_string;
+
+
+    for (int i = 0; i < len; i++)
+        { 
+        
+        }
+
+
+
+
     std::cout << clock () - start << " ms" << std::endl;
     start = clock ();
+
+    // 0 0 0 1  1 1 1 1   0 1 1 0  0
 
     // Outputs output_string 
-    //printOutputStringInt (output_string);
+    printOutputStringInt (output_string);
 
     // Saves output_string
     file.fastSave ("output.txt", output_string.c_str (), output_string.size ());
@@ -277,51 +276,6 @@ void saveCodes (CharTreeNode * root, std::vector <bool> &root_code)
 
     if (root_code.size ())
         root_code.pop_back ();
-    }
-
-std::vector <bool> generateOutputBitConsequence (char* string, long len, CharTreeNode freq_table [N_CHARS])
-    {
-    std::vector <bool> string_code;
-
-    for (int i = 0; i < len; i++)
-        { 
-        char curr_char = string [i];
-        std::vector <bool> curr_char_code = freq_table [curr_char].code;
-        
-        // Joins this char code to the string code vector
-        for (int j = 0; j < curr_char_code.size (); j++)
-            string_code.push_back (curr_char_code [j]);
-        }
-
-    return string_code;
-    }
-
-std::string convertBitConsequenceToString (std::vector <bool> string_code)
-    {
-    std::string output_string;
-
-    char last_char = 0;
-    for (int i = 0; i < string_code.size (); i++)
-        {
-        last_char |= int (string_code [i]);
-        if (i % 8 != 7)
-            last_char <<= 1;
-        else
-            {
-            output_string += last_char;
-            last_char = 0;
-            }
-        }
-    // Last char handler
-    if ((string_code.size ()) % 8 != 7)
-        {
-        int shift = 7 - ((string_code.size ()) % 8);
-        last_char <<= shift;
-
-        output_string += last_char;
-        }
-
-    return output_string;
     }
 
 void freeTree (CharTreeNode * root)
