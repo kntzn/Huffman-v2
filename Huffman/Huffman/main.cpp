@@ -50,6 +50,7 @@ int main ()
     long len = 0;
     FileIO file;
     file.fastLoad ("input.txt", string, len);
+    len++;
 
     // Sets up freq_table and sets chars
     CharTreeNode* freq_table = (CharTreeNode*) calloc (N_CHARS, sizeof (CharTreeNode));
@@ -109,9 +110,49 @@ int main ()
     saveCodes (root, std::vector <bool> (0));
     printTable (freq_table);
 
+    // Converts input string to string_code bits vector
+    std::vector <bool> string_code;
+    for (int i = 0; i < len; i++)
+        { 
+        char curr_char = string [i];
+        std::vector <bool> curr_char_code = freq_table [curr_char].code;
+        
+        // Joins this char code to the string code vector
+        for (int j = 0; j < curr_char_code.size (); j++)
+            string_code.push_back (curr_char_code [j]);
+        }
     
+    for (int i = 0; i < string_code.size (); i++)
+        std::cout << string_code [i] << " ";
+    std::cout << std::endl;
+    
+    // Converts bits array to string
+    std::string output_string;
+    char last_char = 0;
+    for (int i = 0; i < string_code.size (); i++)
+        { 
+        last_char |= int (string_code [i]);
+        if (i%8 != 7)
+            last_char <<= 1;
+        else
+            { 
+            output_string += last_char;
+            last_char = 0;
+            }
+        }
+    // Last char handler
+    if ((string_code.size ()) % 8 != 7)
+        { 
+        int shift = 7 - ((string_code.size ()) % 8);
+        last_char <<= shift;
 
-    // TODO: string conversion
+        output_string += last_char;
+        }
+
+
+    for (int i = 0; i < output_string.size (); i++)
+        std::cout << int (output_string [i]) << " ";
+    std::cout << std::endl;
 
     // TODO: File Load / Save
 
