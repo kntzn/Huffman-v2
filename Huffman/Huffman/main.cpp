@@ -20,8 +20,7 @@ struct CharTreeNode
     CharTreeNode* ptr_to_root;
     CharTreeNode* ptr_to_left;
     CharTreeNode* ptr_to_right;
-    std::vector <bool> code;
-
+    
     CharTreeNode ():
         freq (0),
         ch (-1),
@@ -45,7 +44,9 @@ void printStringCodeVector (std::vector <bool> string_code);
 void printOutputStringInt (std::string output_string);
 
 CharTreeNode* buildTree (CharTreeNode freq_table [N_CHARS]);
-void saveCodes (CharTreeNode * root, std::vector <bool> &root_code);
+void saveCodes (CharTreeNode * root,
+                std::vector <std::vector <bool>> &codes,
+                std::vector <bool> &root_code);
 void freeTree (CharTreeNode * root);
 
 int main ()
@@ -71,7 +72,9 @@ int main ()
     CharTreeNode* root = buildTree (freq_table);
     //printTree (root);
 
-    saveCodes (root, std::vector <bool> (0));
+    std::vector <std::vector <bool>> codes (256);
+
+    saveCodes (root, codes, std::vector <bool> (0));
     printTable (freq_table);
 
     // Converts bits array to string
@@ -109,10 +112,10 @@ void printTable (CharTreeNode freq_table [N_CHARS])
                 int (freq_table [i].ch) << ")\t freq: " <<
                 freq_table [i].freq << "\t code: ";
 
-
+            /*
             std::vector <bool> this_node_code = freq_table [i].code;
             for (int j = 0; j < this_node_code.size (); j++)
-                std::cout << this_node_code [j];
+                std::cout << this_node_code [j];*/
 
             std::cout << std::endl;
             }
@@ -233,22 +236,24 @@ CharTreeNode * buildTree (CharTreeNode freq_table [N_CHARS])
     return table.back ();
     }
 
-void saveCodes (CharTreeNode * root, std::vector <bool> &root_code)
+void saveCodes (CharTreeNode * root, 
+                std::vector <std::vector <bool>> &codes, 
+                std::vector <bool> &root_code)
     {
     if (root->ptr_to_left != NULL)
         {
         root_code.push_back (DIR_LEFT);
-        saveCodes (root->ptr_to_left, root_code);
+        saveCodes (root->ptr_to_left, codes, root_code);
         }
     if (root->ptr_to_right != NULL)
         {
         root_code.push_back (DIR_RIGHT);
-        saveCodes (root->ptr_to_right, root_code);
+        saveCodes (root->ptr_to_right, codes, root_code);
         }
 
     if (root->ptr_to_left == NULL && root->ptr_to_right == NULL)
         {
-        root->code = root_code;
+        codes [root->ch] = root_code;
         }
 
     if (root_code.size ())
