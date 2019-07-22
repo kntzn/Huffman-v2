@@ -79,14 +79,38 @@ int main ()
 
     // Converts bits array to string
     std::string output_string;
-
+    char last_char = 0;
+    int reg = 0;
 
     for (int i = 0; i < len; i++)
         {
-        
-        }
+        char curr_char = string [i];
+        std::vector <bool> *curr_char_code_ptr = &codes [curr_char];
 
-    // 0 0 0 1  1 1 1 1   0 1 1 0  0
+        for (int j = 0; j < curr_char_code_ptr->size (); j++)
+            { 
+            bool bit = curr_char_code_ptr-> operator[] (j);
+
+            last_char |= bit;
+
+            if (reg != 7)
+                {
+                last_char <<= 1;
+                reg++;
+                }
+            else
+                { 
+                output_string.push_back (last_char);
+                last_char = 0;
+                reg = 0;
+                }
+            }
+        }
+    if (reg != 0)
+        { 
+        last_char <<= (7 - reg);
+        output_string.push_back (last_char);
+        }
 
     // Outputs output_string 
     printOutputStringInt (output_string);
