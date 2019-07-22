@@ -50,9 +50,6 @@ void freeTree (CharTreeNode * root);
 
 int main ()
     {
-    clock_t start = clock ();
-    clock_t prg_strt = clock ();
-
     // String and fileIO setup
     char* string = nullptr;
     long len = 0;
@@ -70,36 +67,21 @@ int main ()
     for (int i = 0; i < len; i++)
         freq_table [string [i]].freq++;
 
-    std::cout << clock () - start << " ms" << std::endl;
-    start = clock ();
-
     // Builds the tree
     CharTreeNode* root = buildTree (freq_table);
     //printTree (root);
 
-    std::cout << clock () - start << " ms" << std::endl;
-    start = clock ();
-
     saveCodes (root, std::vector <bool> (0));
     printTable (freq_table);
-
-    std::cout << clock () - start << " ms" << std::endl;
-    start = clock ();
 
     // Converts bits array to string
     std::string output_string;
 
 
     for (int i = 0; i < len; i++)
-        { 
+        {
         
         }
-
-
-
-
-    std::cout << clock () - start << " ms" << std::endl;
-    start = clock ();
 
     // 0 0 0 1  1 1 1 1   0 1 1 0  0
 
@@ -113,11 +95,6 @@ int main ()
     freeTree (root);
     free (freq_table);
     
-    std::cout << clock () - start << " ms" << std::endl;
-    std::cout << std::endl << clock () - prg_strt << " ms" << std::endl;
-    
-    start = clock ();
-
     system ("pause");
     }
 
