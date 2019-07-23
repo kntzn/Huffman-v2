@@ -101,6 +101,24 @@ int main ()
     // Saves output_string
     file.fastSave ("output.txt", output_string.c_str (), output_string.size ());
 
+    // Now it stores the table
+    output_string.clear ();
+    // Saves codes in the format 
+    // [char][code size][1/0][1/0][1/0]....[char][code size][....
+    for (int i = 0; i < N_CHARS; i++)
+        if (freq_table [i].freq)
+            {
+            output_string += char (i);
+            output_string += char (codes [i].size ());
+            
+            for (int j = 0; j < codes [i].size (); j++)
+                output_string += std::to_string (codes [i] [j]);
+            }
+
+    // Saves the codes
+    file.fastSave ("codes.txt", output_string.c_str (), output_string.size ());
+
+
     // Frees the memory
     freeTree (root);
     free (freq_table);
