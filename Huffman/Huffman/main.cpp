@@ -5,7 +5,8 @@
 #include <assert.h>
 #include <ctime>
 #include "FileIO.h"
-#include <bitset>
+#include "sarray.h"
+
 
 #define N_CHARS 256
 #define MAX_DEPTH N_CHARS
@@ -45,7 +46,7 @@ void printOutputStringInt (std::string output_string);
 
 CharTreeNode* buildTree (CharTreeNode freq_table [N_CHARS]);
 void saveCodes (CharTreeNode * root,
-                std::vector <std::vector <bool>> &codes,
+                sarray <bool, MAX_DEPTH> codes [N_CHARS],
                 std::vector <bool> &root_code);
 void freeTree (CharTreeNode * root);
 
@@ -81,11 +82,13 @@ int main ()
     CharTreeNode* root = buildTree (freq_table);
     //printTree (root);
 
-    std::vector <std::vector <bool>> codes (256);
-
+    //std::vector <std::vector <bool>> codes (256);
+    sarray <bool, MAX_DEPTH> codes [N_CHARS] = { };
+    
     saveCodes (root, codes, std::vector <bool> (0));
     //printTable (freq_table, codes);
 
+    
     // Converts bits array to string
     std::string output_string;
     char last_char = 0;
@@ -270,7 +273,7 @@ CharTreeNode * buildTree (CharTreeNode freq_table [N_CHARS])
     }
 
 void saveCodes (CharTreeNode * root, 
-                std::vector <std::vector <bool>> &codes, 
+                sarray <bool, MAX_DEPTH> codes [N_CHARS],
                 std::vector <bool> &root_code)
     {
     if (root->ptr_to_left != NULL)
@@ -286,7 +289,10 @@ void saveCodes (CharTreeNode * root,
 
     if (root->ptr_to_left == NULL && root->ptr_to_right == NULL)
         {
-        codes [root->ch] = root_code;
+        for (int i = 0; i < root_code.size(); i++)
+            {
+            codes [root->ch].push_back (root_code [i]);
+            }
         }
 
     if (root_code.size ())
