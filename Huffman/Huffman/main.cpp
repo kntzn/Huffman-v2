@@ -60,6 +60,13 @@ int main ()
     file.fastLoad ("input.txt", string, len);
     len++;
 
+    /*
+    #ifdef (O1)
+        for (int i = 0; i < len; i++)
+            if ('A' <= string [i] && string [i] <= 'Z')
+                string [i] = tolower (string [i]);
+    #endif*/
+
     // Sets up freq_table and sets chars
     CharTreeNode* freq_table = (CharTreeNode*) calloc (N_CHARS, sizeof (CharTreeNode));
     assert (freq_table);
@@ -77,7 +84,7 @@ int main ()
     std::vector <std::vector <bool>> codes (256);
 
     saveCodes (root, codes, std::vector <bool> (0));
-    printTable (freq_table, codes);
+    //printTable (freq_table, codes);
 
     // Converts bits array to string
     std::string output_string;
@@ -87,23 +94,20 @@ int main ()
     for (int i = 0; i < len; i++)
         {
         unsigned char curr_char = string [i];
-        std::vector <bool> *curr_char_code_ptr = &codes [curr_char];
+        
+        size_t curr_char_code_size = codes [curr_char].size ();
 
-        for (int j = 0; j < curr_char_code_ptr->size (); j++)
+        for (int j = 0; j < curr_char_code_size; j++)
             { 
-
-            bool bit = curr_char_code_ptr->operator[] (j);
-
-            last_char |= bit;
-
+            last_char |= codes [curr_char][j];
             if (reg != 7)
                 {
-                last_char <<= 1;
+                last_char <<= 1; // 350ms
                 reg++;
                 }
             else
                 { 
-                output_string.push_back (last_char);
+                output_string.push_back (last_char); // 400ms
                 last_char = 0;
                 reg = 0;
                 }
@@ -126,6 +130,7 @@ int main ()
     free (freq_table);
     
     std::cout << clock () - start << " ms" << std::endl;
+    std::cout << "Compression: " << 100 - output_string.size () * 100 / len << "%" << std::endl;
 
     system ("pause");
     }
@@ -223,7 +228,6 @@ void printOutputStringInt (std::string output_string)
         std::cout << int (output_string [i]) << " ";
     std::cout << std::endl;
     }
-
 
 CharTreeNode * buildTree (CharTreeNode freq_table [N_CHARS])
     {
