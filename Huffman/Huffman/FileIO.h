@@ -61,7 +61,7 @@ class FileIO
         void load (char* &buffer, long int &bufSize)
             {
             buffer = nullptr;
-            buffer = (char*) calloc (fileSize, sizeof (int));
+            buffer = (char*) calloc (fileSize, sizeof (char));
             assert (buffer != nullptr);
 
             // Reading file

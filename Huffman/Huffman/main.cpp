@@ -38,7 +38,7 @@ struct FRQ_CMP
         } 
     };
 
-void printTable (CharTreeNode freq_table [N_CHARS]);
+void printTable (CharTreeNode freq_table [N_CHARS], std::vector <std::vector <bool>> &codes);
 void printTree (CharTreeNode* parent, int depth = 0, bool mask [MAX_DEPTH] = { });
 void printStringCodeVector (std::vector <bool> string_code);
 void printOutputStringInt (std::string output_string);
@@ -51,6 +51,8 @@ void freeTree (CharTreeNode * root);
 
 int main ()
     {
+    clock_t start = clock ();
+
     // String and fileIO setup
     char* string = nullptr;
     long len = 0;
@@ -75,7 +77,7 @@ int main ()
     std::vector <std::vector <bool>> codes (256);
 
     saveCodes (root, codes, std::vector <bool> (0));
-    printTable (freq_table);
+    printTable (freq_table, codes);
 
     // Converts bits array to string
     std::string output_string;
@@ -84,12 +86,13 @@ int main ()
 
     for (int i = 0; i < len; i++)
         {
-        char curr_char = string [i];
+        unsigned char curr_char = string [i];
         std::vector <bool> *curr_char_code_ptr = &codes [curr_char];
 
         for (int j = 0; j < curr_char_code_ptr->size (); j++)
             { 
-            bool bit = curr_char_code_ptr-> operator[] (j);
+
+            bool bit = curr_char_code_ptr->operator[] (j);
 
             last_char |= bit;
 
@@ -113,7 +116,7 @@ int main ()
         }
 
     // Outputs output_string 
-    printOutputStringInt (output_string);
+    //printOutputStringInt (output_string);
 
     // Saves output_string
     file.fastSave ("output.txt", output_string.c_str (), output_string.size ());
@@ -122,10 +125,12 @@ int main ()
     freeTree (root);
     free (freq_table);
     
+    std::cout << clock () - start << " ms" << std::endl;
+
     system ("pause");
     }
 
-void printTable (CharTreeNode freq_table [N_CHARS])
+void printTable (CharTreeNode freq_table [N_CHARS], std::vector <std::vector <bool>> &codes)
     { 
     std::cout << std::endl << std::endl;
 
@@ -136,10 +141,10 @@ void printTable (CharTreeNode freq_table [N_CHARS])
                 int (freq_table [i].ch) << ")\t freq: " <<
                 freq_table [i].freq << "\t code: ";
 
-            /*
-            std::vector <bool> this_node_code = freq_table [i].code;
+            
+            std::vector <bool> this_node_code = codes [i];
             for (int j = 0; j < this_node_code.size (); j++)
-                std::cout << this_node_code [j];*/
+                std::cout << this_node_code [j];
 
             std::cout << std::endl;
             }
