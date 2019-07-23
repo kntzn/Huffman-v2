@@ -48,6 +48,9 @@ CharTreeNode* buildTree (CharTreeNode freq_table [N_CHARS]);
 void saveCodes (CharTreeNode * root,
                 sarray <bool, MAX_DEPTH> codes [N_CHARS],
                 std::vector <bool> &root_code);
+void convert (std::string &output_string,
+               char* string, long len,
+               sarray <bool, MAX_DEPTH> codes [N_CHARS]);
 void freeTree (CharTreeNode * root);
 
 int main ()
@@ -88,42 +91,12 @@ int main ()
     saveCodes (root, codes, std::vector <bool> (0));
     //printTable (freq_table, codes);
 
-    
     // Converts bits array to string
     std::string output_string;
-    char last_char = 0;
-    int reg = 0;
-
-    for (int i = 0; i < len; i++)
-        {
-        unsigned char curr_char = string [i];
-        
-        size_t curr_char_code_size = codes [curr_char].size ();
-
-        for (int j = 0; j < curr_char_code_size; j++)
-            { 
-            last_char |= codes [curr_char][j];
-            if (reg != 7)
-                {
-                last_char <<= 1; // 350ms
-                reg++;
-                }
-            else
-                { 
-                output_string.push_back (last_char); // 400ms
-                last_char = 0;
-                reg = 0;
-                }
-            }
-        }
-    if (reg != 0)
-        { 
-        last_char <<= (7 - reg);
-        output_string.push_back (last_char);
-        }
+    convert (output_string, string, len, codes);
 
     // Outputs output_string 
-    //printOutputStringInt (output_string);
+    // printOutputStringInt (output_string);
 
     // Saves output_string
     file.fastSave ("output.txt", output_string.c_str (), output_string.size ());
@@ -232,6 +205,7 @@ void printOutputStringInt (std::string output_string)
     std::cout << std::endl;
     }
 
+
 CharTreeNode * buildTree (CharTreeNode freq_table [N_CHARS])
     {
     // Saves used chars in table
@@ -271,7 +245,6 @@ CharTreeNode * buildTree (CharTreeNode freq_table [N_CHARS])
 
     return table.back ();
     }
-
 void saveCodes (CharTreeNode * root, 
                 sarray <bool, MAX_DEPTH> codes [N_CHARS],
                 std::vector <bool> &root_code)
@@ -298,7 +271,41 @@ void saveCodes (CharTreeNode * root,
     if (root_code.size ())
         root_code.pop_back ();
     }
+void convert (std::string &output_string,
+               char* string, long len,
+               sarray <bool, MAX_DEPTH> codes [N_CHARS])
+    {
+    char last_char = 0;
+    int reg = 0;
 
+    for (int i = 0; i < len; i++)
+        {
+        unsigned char curr_char = string [i];
+
+        size_t curr_char_code_size = codes [curr_char].size ();
+
+        for (int j = 0; j < curr_char_code_size; j++)
+            {
+            last_char |= codes [curr_char] [j]; // 2900 ms
+            if (reg != 7)
+                {
+                last_char <<= 1; // 350ms
+                reg++;
+                }
+            else
+                {
+                output_string.push_back (last_char); // 400ms
+                last_char = 0;
+                reg = 0;
+                }
+            }
+        }
+    if (reg != 0)
+        {
+        last_char <<= (7 - reg);
+        output_string.push_back (last_char);
+        }
+    }
 void freeTree (CharTreeNode * root)
     {
     if (root->ptr_to_left != nullptr)
