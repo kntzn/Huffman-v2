@@ -7,17 +7,18 @@
 #include <ctime>
 #include "FileIO.h"
 #include "sarray.h"
+#include "sort.h"
 
 #define N_CHARS 256
 #define MAX_DEPTH N_CHARS
-#define EMPTY_NODE_CHAR -1
+#define EMPTY_NODE_CHAR 255
 #define DIR_RIGHT 1
 #define DIR_LEFT 0
 
 struct CharTreeNode
     {
     unsigned long freq;
-    char ch;
+    unsigned char ch;
     CharTreeNode* ptr_to_root;
     CharTreeNode* ptr_to_left;
     CharTreeNode* ptr_to_right;
@@ -35,11 +36,11 @@ struct FRQ_CMP
     {
     bool operator() (const CharTreeNode* l, const CharTreeNode* r) const 
         {
-        return l->freq < r->freq; 
+        return l->freq > r->freq; 
         } 
     };
 
-void printTable (CharTreeNode freq_table [N_CHARS], std::vector <std::vector <bool>> &codes);
+void printTable (CharTreeNode freq_table [N_CHARS], sarray <bool, MAX_DEPTH> codes [N_CHARS]);
 void printTree (CharTreeNode* parent, int depth = 0, bool mask [MAX_DEPTH] = { });
 void printStringCodeVector (std::vector <bool> string_code);
 void printOutputStringInt (std::string output_string);
@@ -75,16 +76,21 @@ int main ()
     CharTreeNode* freq_table = (CharTreeNode*) calloc (N_CHARS, sizeof (CharTreeNode));
     assert (freq_table);
     for (int i = 0; i < N_CHARS; i++)
-        freq_table [i].ch = i;
+        {
+        freq_table [i].ch   = i;
+        freq_table [i].freq = 1;
+        }
 
     // Converts bits array to string
     std::string output_string;
     char last_char = 0;
     int reg = 0;
 
+    std::cout << __LINE__ << std::endl;
+
+    
     for (int i = 0; i < len; i++)
         {
-        
         //std::cout << i << '/' << len << ' ';
 
         unsigned char curr_char = string [i];
@@ -97,16 +103,22 @@ int main ()
 
         // Builds the tree
         CharTreeNode* root = buildTree (freq_table); // 9600 ms // Insertion sort
-        //printTree (root);
+        
+       
+        //printTree (root);                         
+
         //std::cout << std::endl;
 
         sarray <bool, MAX_DEPTH> codes [N_CHARS] = { };
         saveCodes (root, codes, sarray <bool, N_CHARS> ()); // ~0 ms
+        //printTable (freq_table, codes);
+
 
         size_t curr_char_code_size = codes [curr_char].size ();
 
         //std::cout << curr_char_code_size << std::endl;
         // ~ 0 ms
+        
         for (int j = 0; j < curr_char_code_size; j++)
             {
             //std::cout << codes [curr_char] [j] << ' ';
@@ -125,13 +137,12 @@ int main ()
                 }
             }
 
-        //std::cout << std::endl;
         //printOutputStringInt (output_string);
-        //std::cout << std::endl;
-
+        
         // frees the tree
-        freeTree (root);
+        //freeTree (root);
         }
+    
     if (reg != 0)
         {
         last_char <<= (7 - reg);
@@ -142,7 +153,7 @@ int main ()
     file.fastSave ("output.txt", output_string.c_str (), output_string.size ());
 
     // Frees the memory
-        free (freq_table);
+    free (freq_table);
     
     std::cout << clock () - start << " ms" << std::endl;
     std::cout << "Compression: " << 100 - output_string.size () * 100 / len << "%" << std::endl;
@@ -150,7 +161,7 @@ int main ()
     system ("pause");
     }
 
-void printTable (CharTreeNode freq_table [N_CHARS], std::vector <std::vector <bool>> &codes)
+void printTable (CharTreeNode freq_table [N_CHARS], sarray <bool, MAX_DEPTH> codes [N_CHARS])
     { 
     std::cout << std::endl << std::endl;
 
@@ -162,9 +173,8 @@ void printTable (CharTreeNode freq_table [N_CHARS], std::vector <std::vector <bo
                 freq_table [i].freq << "\t code: ";
 
             
-            std::vector <bool> this_node_code = codes [i];
-            for (int j = 0; j < this_node_code.size (); j++)
-                std::cout << this_node_code [j];
+            for (int j = 0; j < codes [i].size (); j++)
+                std::cout << codes [i][j];
 
             std::cout << std::endl;
             }
@@ -246,37 +256,60 @@ void printOutputStringInt (std::string output_string)
 
 int cmp_freq (const void* left, const void* right)
     {
-    const CharTreeNode* l_nd = (CharTreeNode*) left;
-    const CharTreeNode* r_nd = (CharTreeNode*) right;
-
-    return (l_nd->freq > r_nd->freq)? -1 : 1;
+    return (int (((CharTreeNode*) right)->freq) - int (((CharTreeNode*) left)->freq));
     }
 
+void QuickSort (CharTreeNode* data [], int left, int right)
+    {
+    int CurL = left;
+    int CurR = right;
+    CharTreeNode* CurMid = data [(left + right) / 2];
+
+    while (CurL <= CurR)
+        {
+        while (data [CurL]->freq > CurMid->freq) CurL++;
+        while (data [CurR]->freq < CurMid->freq) CurR--;
+
+        if (CurL <= CurR)
+            {
+            if (data [CurL]->freq < data [CurR]->freq)
+                {
+                auto temp_CurL = data [CurL];
+                data [CurL]    = data [CurR];
+                data [CurR]    = temp_CurL;
+                }
+
+            CurL++;
+            CurR--;
+            }
+
+        if (CurL > CurR) break;
+        }
+
+    if (CurL < right) QuickSort (data, CurL, right);
+    if (left < CurR)  QuickSort (data, left, CurR);
+    }
 CharTreeNode * buildTree (CharTreeNode freq_table [N_CHARS])
     {
     // Saves used chars in table
     //std::list <CharTreeNode*> table; // 9500ms
 
-    
-            
-    
-    sarray <CharTreeNode*, N_CHARS * 2> table;
+    sarray <CharTreeNode*, N_CHARS> table;
 
     for (int i = 0; i < N_CHARS; i++)
         if (freq_table [i].freq)
             table.push_back (freq_table + i);
-
     
     // Builds the tree
     while (table.size () != 1)
         {
         // Sorts the nodes by their frequencies
         //table.sort (FRQ_CMP ());
-
-        qsort (table.data (), table.size (), sizeof (CharTreeNode *), cmp_freq);
-
-        // TODO: OPT
         
+        
+        QuickSort (table.data (), 0, table.size () - 1); // 2000 ms
+
+
         // Saves the pointers to the rarest elements
         CharTreeNode* SonL = table.back ();
         table.pop_back ();
@@ -284,9 +317,10 @@ CharTreeNode * buildTree (CharTreeNode freq_table [N_CHARS])
         table.pop_back ();
 
         // And creates new element that replaces them 
-        CharTreeNode *parent = (CharTreeNode*) calloc (1, sizeof (CharTreeNode));
+        CharTreeNode *parent = new CharTreeNode;// calloc (1, sizeof (CharTreeNode));
         if (!parent)
             exit (1);
+
 
         SonL->ptr_to_root = parent;
         SonR->ptr_to_root = parent;
@@ -299,6 +333,8 @@ CharTreeNode * buildTree (CharTreeNode freq_table [N_CHARS])
 
         table.push_back (parent);
         }
+
+    
 
     return table.back ();
     }

@@ -22,7 +22,7 @@ template <typename T, size_t len> class sarray
 
         T* data ();
 
-        T &back ();
+        T back ();
 
         size_t size ();
         size_t max_size ();
@@ -78,7 +78,7 @@ inline T * sarray<T, len>::data ()
     }
 
 template<typename T, size_t len>
-inline T & sarray<T, len>::back ()
+inline T sarray<T, len>::back ()
     {
     return container [count - 1];
     }
