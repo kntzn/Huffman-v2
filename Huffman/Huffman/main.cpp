@@ -47,7 +47,7 @@ void printOutputStringInt (std::string output_string);
 CharTreeNode* buildTree (CharTreeNode freq_table [N_CHARS]);
 void saveCodes (CharTreeNode * root,
                 sarray <bool, MAX_DEPTH> codes [N_CHARS],
-                std::vector <bool> &root_code);
+                sarray <bool, MAX_DEPTH> &root_code);
 void convert (std::string &output_string,
                char* string, long len,
                sarray <bool, MAX_DEPTH> codes [N_CHARS]);
@@ -84,11 +84,7 @@ int main ()
 
     for (int i = 0; i < len; i++)
         {
-        if (!(i%100))
-            {
-            std::cout << "\r" << i  << ' ' << len;
-            }
-
+        
         //std::cout << i << '/' << len << ' ';
 
         unsigned char curr_char = string [i];
@@ -99,20 +95,18 @@ int main ()
         freq_table [curr_char].freq++;
 
 
-        //std::cout << freq_table [curr_char].freq << ' ' << std::endl;
-
-
         // Builds the tree
-        CharTreeNode* root = buildTree (freq_table);
+        CharTreeNode* root = buildTree (freq_table); // 9600 ms // Insertion sort
         //printTree (root);
         //std::cout << std::endl;
 
         sarray <bool, MAX_DEPTH> codes [N_CHARS] = { };
-        saveCodes (root, codes, std::vector <bool> (0));
+        saveCodes (root, codes, sarray <bool, N_CHARS> ()); // ~0 ms
 
         size_t curr_char_code_size = codes [curr_char].size ();
 
         //std::cout << curr_char_code_size << std::endl;
+        // ~ 0 ms
         for (int j = 0; j < curr_char_code_size; j++)
             {
             //std::cout << codes [curr_char] [j] << ' ';
@@ -130,6 +124,7 @@ int main ()
                 reg = 0;
                 }
             }
+
         //std::cout << std::endl;
         //printOutputStringInt (output_string);
         //std::cout << std::endl;
@@ -143,10 +138,6 @@ int main ()
         output_string.push_back (last_char);
         }
 
-
-    //printOutputStringInt (output_string);
-
-    
     // Saves output_string
     file.fastSave ("output.txt", output_string.c_str (), output_string.size ());
 
@@ -295,7 +286,7 @@ CharTreeNode * buildTree (CharTreeNode freq_table [N_CHARS])
     }
 void saveCodes (CharTreeNode * root, 
                 sarray <bool, MAX_DEPTH> codes [N_CHARS],
-                std::vector <bool> &root_code)
+                sarray <bool, MAX_DEPTH> &root_code)
     {
     if (root->ptr_to_left != NULL)
         {
@@ -310,10 +301,10 @@ void saveCodes (CharTreeNode * root,
 
     if (root->ptr_to_left == NULL && root->ptr_to_right == NULL)
         {
-        for (int i = 0; i < root_code.size(); i++)
-            {
-            codes [root->ch].push_back (root_code [i]);
-            }
+        
+            codes [root->ch] = root_code;
+
+
         if (!root_code.size ())
             codes [root->ch].push_back (0);
         }
