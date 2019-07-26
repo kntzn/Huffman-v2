@@ -61,8 +61,8 @@ int main ()
     char* string = nullptr;
     long len = 0;
     FileIO file;
-    file.fastLoad ("input.txt", string, len);
-    len++;
+    file.fastLoad ("Валентин-mini.txt", string, len);
+    //len++;
 
     /*
     #ifdef (O1)
@@ -84,22 +84,39 @@ int main ()
 
     for (int i = 0; i < len; i++)
         {
+        if (!(i%100))
+            {
+            std::cout << "\r" << i  << ' ' << len;
+            }
+
+        //std::cout << i << '/' << len << ' ';
+
         unsigned char curr_char = string [i];
+
+        //std::cout << curr_char << ' ';
 
         // Updates the table
         freq_table [curr_char].freq++;
 
+
+        //std::cout << freq_table [curr_char].freq << ' ' << std::endl;
+
+
         // Builds the tree
         CharTreeNode* root = buildTree (freq_table);
-
+        //printTree (root);
+        //std::cout << std::endl;
 
         sarray <bool, MAX_DEPTH> codes [N_CHARS] = { };
         saveCodes (root, codes, std::vector <bool> (0));
 
         size_t curr_char_code_size = codes [curr_char].size ();
 
+        //std::cout << curr_char_code_size << std::endl;
         for (int j = 0; j < curr_char_code_size; j++)
             {
+            //std::cout << codes [curr_char] [j] << ' ';
+
             last_char |= codes [curr_char] [j]; // 2900 ms
             if (reg != 7)
                 {
@@ -113,6 +130,9 @@ int main ()
                 reg = 0;
                 }
             }
+        //std::cout << std::endl;
+        //printOutputStringInt (output_string);
+        //std::cout << std::endl;
 
         // frees the tree
         freeTree (root);
@@ -124,7 +144,7 @@ int main ()
         }
 
 
-
+    //printOutputStringInt (output_string);
 
     
     // Saves output_string
@@ -294,6 +314,8 @@ void saveCodes (CharTreeNode * root,
             {
             codes [root->ch].push_back (root_code [i]);
             }
+        if (!root_code.size ())
+            codes [root->ch].push_back (0);
         }
 
     if (root_code.size ())
@@ -312,8 +334,10 @@ void convert (std::string &output_string,
 
         size_t curr_char_code_size = codes [curr_char].size ();
 
+        
         for (int j = 0; j < curr_char_code_size; j++)
             {
+            
             last_char |= codes [curr_char] [j]; // 2900 ms
             if (reg != 7)
                 {
@@ -327,6 +351,7 @@ void convert (std::string &output_string,
                 reg = 0;
                 }
             }
+        
         }
     if (reg != 0)
         {
