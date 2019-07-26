@@ -20,6 +20,10 @@ template <typename T, size_t len> class sarray
 
         //T &operator[] (const size_t idx) const;
 
+        T* data ();
+
+        T &back ();
+
         size_t size ();
         size_t max_size ();
 
@@ -65,6 +69,18 @@ inline T & sarray<T, len>::operator[] (const size_t idx) const
     assert (0 <= idx && idx < count);
 
     return T (container [idx]);
+    }
+
+template<typename T, size_t len>
+inline T * sarray<T, len>::data ()
+    {
+    return container;
+    }
+
+template<typename T, size_t len>
+inline T & sarray<T, len>::back ()
+    {
+    return container [count - 1];
     }
 
 template<typename T, size_t len>

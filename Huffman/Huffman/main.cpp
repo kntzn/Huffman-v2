@@ -1,12 +1,12 @@
 ﻿#include <stdlib.h>
 #include <iostream>
 #include <list>
+#include <deque>
 #include <vector>
 #include <assert.h>
 #include <ctime>
 #include "FileIO.h"
 #include "sarray.h"
-
 
 #define N_CHARS 256
 #define MAX_DEPTH N_CHARS
@@ -244,26 +244,44 @@ void printOutputStringInt (std::string output_string)
     std::cout << std::endl;
     }
 
+int cmp_freq (const void* left, const void* right)
+    {
+    const CharTreeNode* l_nd = (CharTreeNode*) left;
+    const CharTreeNode* r_nd = (CharTreeNode*) right;
+
+    return (l_nd->freq > r_nd->freq)? -1 : 1;
+    }
 
 CharTreeNode * buildTree (CharTreeNode freq_table [N_CHARS])
     {
     // Saves used chars in table
-    std::list <CharTreeNode*> table;
+    //std::list <CharTreeNode*> table; // 9500ms
+
+    
+            
+    
+    sarray <CharTreeNode*, N_CHARS * 2> table;
+
     for (int i = 0; i < N_CHARS; i++)
         if (freq_table [i].freq)
             table.push_back (freq_table + i);
 
+    
     // Builds the tree
     while (table.size () != 1)
         {
         // Sorts the nodes by their frequencies
-        table.sort (FRQ_CMP ());
+        //table.sort (FRQ_CMP ());
 
+        qsort (table.data (), table.size (), sizeof (CharTreeNode *), cmp_freq);
+
+        // TODO: OPT
+        
         // Saves the pointers to the rarest elements
-        CharTreeNode* SonL = table.front ();
-        table.pop_front ();
-        CharTreeNode* SonR = table.front ();
-        table.pop_front ();
+        CharTreeNode* SonL = table.back ();
+        table.pop_back ();
+        CharTreeNode* SonR = table.back ();
+        table.pop_back ();
 
         // And creates new element that replaces them 
         CharTreeNode *parent = (CharTreeNode*) calloc (1, sizeof (CharTreeNode));
@@ -279,7 +297,7 @@ CharTreeNode * buildTree (CharTreeNode freq_table [N_CHARS])
         parent->ch = EMPTY_NODE_CHAR;
         parent->freq = SonL->freq + SonR->freq;
 
-        table.push_front (parent);
+        table.push_back (parent);
         }
 
     return table.back ();
@@ -301,9 +319,7 @@ void saveCodes (CharTreeNode * root,
 
     if (root->ptr_to_left == NULL && root->ptr_to_right == NULL)
         {
-        
-            codes [root->ch] = root_code;
-
+        codes [root->ch] = root_code;
 
         if (!root_code.size ())
             codes [root->ch].push_back (0);
