@@ -74,25 +74,64 @@ int main ()
     // Sets up freq_table and sets chars
     CharTreeNode* freq_table = (CharTreeNode*) calloc (N_CHARS, sizeof (CharTreeNode));
     assert (freq_table);
+    for (int i = 0; i < N_CHARS; i++)
+        freq_table [i].ch = i;
 
-    // Builds the tree
-    CharTreeNode* root = buildTree (freq_table);
-    
-    sarray <bool, MAX_DEPTH> codes [N_CHARS] = { };
-    
     // Converts bits array to string
     std::string output_string;
-    convert (output_string, string, len, codes);
+    char last_char = 0;
+    int reg = 0;
 
-    // Outputs output_string 
-    // printOutputStringInt (output_string);
+    for (int i = 0; i < len; i++)
+        {
+        unsigned char curr_char = string [i];
 
+        // Updates the table
+        freq_table [curr_char].freq++;
+
+        // Builds the tree
+        CharTreeNode* root = buildTree (freq_table);
+
+
+        sarray <bool, MAX_DEPTH> codes [N_CHARS] = { };
+        saveCodes (root, codes, std::vector <bool> (0));
+
+        size_t curr_char_code_size = codes [curr_char].size ();
+
+        for (int j = 0; j < curr_char_code_size; j++)
+            {
+            last_char |= codes [curr_char] [j]; // 2900 ms
+            if (reg != 7)
+                {
+                last_char <<= 1; // 350ms
+                reg++;
+                }
+            else
+                {
+                output_string.push_back (last_char); // 400ms
+                last_char = 0;
+                reg = 0;
+                }
+            }
+
+        // frees the tree
+        freeTree (root);
+        }
+    if (reg != 0)
+        {
+        last_char <<= (7 - reg);
+        output_string.push_back (last_char);
+        }
+
+
+
+
+    
     // Saves output_string
     file.fastSave ("output.txt", output_string.c_str (), output_string.size ());
 
     // Frees the memory
-    freeTree (root);
-    free (freq_table);
+        free (freq_table);
     
     std::cout << clock () - start << " ms" << std::endl;
     std::cout << "Compression: " << 100 - output_string.size () * 100 / len << "%" << std::endl;
