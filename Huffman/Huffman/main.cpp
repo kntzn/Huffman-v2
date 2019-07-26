@@ -75,22 +75,11 @@ int main ()
     CharTreeNode* freq_table = (CharTreeNode*) calloc (N_CHARS, sizeof (CharTreeNode));
     assert (freq_table);
 
-    // Fills the table
-    for (int i = 0; i < N_CHARS; i++)
-        freq_table [i].ch = i;
-    for (int i = 0; i < len; i++)
-        freq_table [string [i]].freq++;
-
     // Builds the tree
     CharTreeNode* root = buildTree (freq_table);
-    //printTree (root);
-
-    //std::vector <std::vector <bool>> codes (256);
+    
     sarray <bool, MAX_DEPTH> codes [N_CHARS] = { };
     
-    saveCodes (root, codes, std::vector <bool> (0));
-    //printTable (freq_table, codes);
-
     // Converts bits array to string
     std::string output_string;
     convert (output_string, string, len, codes);
@@ -100,24 +89,6 @@ int main ()
 
     // Saves output_string
     file.fastSave ("output.txt", output_string.c_str (), output_string.size ());
-
-    // Now it stores the table
-    output_string.clear ();
-    // Saves codes in the format 
-    // [char][code size][1/0][1/0][1/0]....[char][code size][....
-    for (int i = 0; i < N_CHARS; i++)
-        if (freq_table [i].freq)
-            {
-            output_string += char (i);
-            output_string += char (codes [i].size ());
-            
-            for (int j = 0; j < codes [i].size (); j++)
-                output_string += std::to_string (codes [i] [j]);
-            }
-
-    // Saves the codes
-    file.fastSave ("codes.txt", output_string.c_str (), output_string.size ());
-
 
     // Frees the memory
     freeTree (root);
